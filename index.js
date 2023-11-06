@@ -10,8 +10,14 @@ function gerarFaturaStr(fatura, pecas) {
     minimumFractionDigits: 2,
   }).format;
 
+  // função query
+  function getPeca(apresentacao) {
+    return pecas[apresentacao.id];
+  }
+
   for (let apre of fatura.apresentacoes) {
-    const peca = pecas[apre.id];
+    //const peca = pecas[apre.id];
+    const peca = getPeca(apre);
     let total = 0;
 
     function calcularTotalApresentacao(apre, peca) {
