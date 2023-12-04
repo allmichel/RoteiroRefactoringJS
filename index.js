@@ -9,33 +9,26 @@ function gerarFaturaStr(fatura, pecas) {
   function getPeca(apresentacao) {
     return pecas[apresentacao.id];
   }
+  function calcularCredito(apre) {
+    let creditos = 0;
+    creditos += Math.max(apre.audiencia - 30, 0);
+    if (getPeca(apre).tipo === "comedia") 
+       creditos += Math.floor(apre.audiencia / 5);
+    return creditos;   
+  }
 
-     // commit 4 - função extraída
-     function formatarMoeda(valor) {
-      return new Intl.NumberFormat("pt-BR",
-        { style: "currency", currency: "BRL",
-          minimumFractionDigits: 2 }).format(valor/100);
-    }
-       // commit 4 - função extraída
-       const formato = formatarMoeda();
-
-     function calcularCredito(apre) {
-      let creditos = 0;
-      creditos += Math.max(apre.audiencia - 30, 0);
-      if (getPeca(apre).tipo === "comedia") 
-         creditos += Math.floor(apre.audiencia / 5);
-      return creditos;   
-    }
+  function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR",
+      { style: "currency", currency: "BRL",
+        minimumFractionDigits: 2 }).format(valor);
+  }
 
   for (let apre of fatura.apresentacoes) {
-    //const peca = pecas[apre.id];
-    const peca = getPeca(apre);
-    let total = 0;
 
-    function calcularTotalApresentacao(apre, peca) {
+    function calcularTotalApresentacao(apre) {
       let total = 0;
 
-      switch (peca.tipo) {
+      switch (getPeca(apre).tipo) {
         case "tragedia":
           total = 40000;
           if (apre.audiencia > 30) {
@@ -50,11 +43,12 @@ function gerarFaturaStr(fatura, pecas) {
           total += 300 * apre.audiencia;
           break;
         default:
-          throw new Error(`Peça desconhecia: ${peca.tipo}`);
+            throw new Error(`Peça desconhecia: ${getPeca(apre).tipo}`);
       }
       return total;
     }
-    total = calcularTotalApresentacao(apre, peca);
+    let total = calcularTotalApresentacao(apre, getPeca(apre));
+    
     //função chamada
     creditos = calcularCredito(apre);
 
@@ -64,16 +58,13 @@ function gerarFaturaStr(fatura, pecas) {
     //if (peca.tipo === "comedia") creditos += Math.floor(apre.audiencia / 5);
 
     // mais uma linha da fatura
-    faturaStr += `  ${peca.nome}: ${formato(total / 100)} (${
-      apre.audiencia
-    } assentos)\n`;
+    faturaStr += `  ${getPeca(apre).nome}: ${formatarMoeda(total/100)} (${apre.audiencia} assentos)\n`;
     totalFatura += total;
-
-    faturaStr += `Valor total: ${formato(totalFatura / 100)}\n`;
+  }
+    faturaStr += `Valor total: ${formatarMoeda(totalFatura/100)}\n`;
     faturaStr += `Créditos acumulados: ${creditos} \n`;
     return faturaStr;
   }
-}
 
 const faturas = JSON.parse(readFileSync("./faturas.json"));
 const pecas = JSON.parse(readFileSync("./pecas.json"));
